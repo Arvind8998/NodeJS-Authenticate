@@ -8,74 +8,65 @@ const User = require('../models/user');
 
 //get all user
 router
-.get('/user', function(err , doc) {
-
-  var response = {
-      status : 200,
-      message : doc
-  };
-if (err) {
+  .get('/user', function(req,res) {
+   
+    User
+    .find( {} , function(err, users){
+ 
+ if (err) {
   console.log("error finding user");
-      res
-          response.status(500)
-          response.message = err;
-      }
-
-      else if(!doc)
-          {
-              res
-                  response.status(404)
-                  response . message = {
-                      "message" : " user id not found"};
-                  }
-                  
-     res
-
-     .status(response.status)
-     .json(response.message);
- 
-
-
-  
-Hotel
-     .find()
-     .toArray(function(err, docs){
- 
- 
-    console.log("found users" , docs);
-
-    res
-       .status(200)
-       .json(docs); 
-
+  next();
+}     
+ res
+       .json(users);
      });
     });
+    
+
+
+
+    router.get('/getall', (req, res, next) => {
+      User.getAllUsers((err, user)=>{
+        if(err) throw err;
+        if(user){
+          var newusr = [];
+          for (usr of user){
+              newusr.push({id: usr._id,
+                name: usr.name,
+                username: usr.username,
+                email: usr.email}
+              );
+          }
+          res.json({success: true,
+            user: newusr
+          });
+        }
+      });
+    });
+
      //get single user
 router
 .get('/user/:userid', (req, res, next) => {
   const userid = req.params.userid;
- 
-
+  console.log("hi");
   User
    .findById(userid)
-  
   .exec(function(err , doc) {
 
       var response = {
           status : 200,
           message : doc
       };
+      
   if (err) {
-      console.log("error finding user");
-          res
-              response.status(500)
+      console.log("error finding user");         
+              response.status = 500;
               response.message = err;
           }
 
           else if(!doc)
-              {
-                  res
-                      response.status(404)
+              {       
+                response.status = 404;
                       response . message = {
                           "message" : " user id not found"};
                       }
@@ -87,6 +78,68 @@ router
      });
     });
     
+    // add a batch
+   
+    var addBatch = function(req,res,user){
+    
+      user.batch.push({
+
+       batchno : parseInt(req.body.batchno , 10),
+       subject : req.body.subject,
+       days : req.body.days,
+       time : new Date (req.body.time)
+        
+      });
+     user.save(function(err , userUpdated){
+
+      if(err){
+        res
+        .status(500)
+        .json(err);
+      }
+      else{
+        res
+        .status(201)
+        .json(userUpdated.batch.length - 1)
+      }
+     });
+    };
+
+    router
+    .post
+    ('/user/:userid/batches', (req, res, next) => {
+      var userid = req.params.userid;
+      console.log('GET userId', userid);
+    
+     User
+        .findById(userid)
+        .exec(function(err, doc) {
+          var response = {
+            status : 200,
+            message : doc
+        };
+    if (err) {
+        console.log("error finding user");
+            
+                response.status = 500;
+                response.message = err;
+            }
+  
+            else if(!doc)
+                {
+                        response.status = 404;
+                        response . message = {
+                            "message" : " user id not found"};
+                        }
+           if(doc){
+             addBatch(req,res,doc);
+           }             
+           res
+  
+           .status(response.status)
+           .json(response.message);
+       });
+    });
     
 // Register
 router

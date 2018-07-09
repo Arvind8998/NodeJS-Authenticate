@@ -6,19 +6,24 @@ const config = require('../config/database');
 
 const BatchSchema =  mongoose.Schema({
 
-  batch : { 
+  batchno : { 
     type : Number ,
     min : 0,
     max : 5 ,
     required : true
   },
+  subject : {
+    type : String
+  },
 
   days : [String],
 
-  time : {
-    type : Date ,
-    "default" : Date.now
-  },
+  // time : {
+    //  type : Date 
+    //  "default" : Date.now
+  //  },
+
+ 
 });
 
 
@@ -63,6 +68,8 @@ module.exports.userGetOne = function(req, res) {
     });
 
 };
+
+
 module.exports.getUserById = function(id, callback){
   User.findById(id, callback);
 }
@@ -71,7 +78,9 @@ module.exports.getUserByUsername = function(username, callback){
   const query = {username: username}
   User.findOne(query, callback);
 }
-
+module.exports.getAllUsers = function(callback){
+  User.find(callback);
+}
 module.exports.addUser = function(newUser, callback){
   bcrypt.genSalt(10, (err, salt) => {
     bcrypt.hash(newUser.password, salt, (err, hash) => {
